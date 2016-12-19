@@ -1,0 +1,19 @@
+//
+
+@import 'styles/mixins';
+@include hide-on-phone-only();
+
+.project-map-auth-header {
+  .project-map-auth-item {
+    color: $light;
+    text-decoration: none;
+    margin-left: 20px;
+    margin-right: 10px;
+  }
+}
+
+.project-map-auth-item {
+  &.iron-selected {
+    font-weight: bold;
+  }
+}

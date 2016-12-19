@@ -1,0 +1,204 @@
+<!-- Polymer Global dependencies -->
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/qairoe-app-layout/qairoe-app-layout.html">
+<link rel="import" href="../bower_components/qairoe-app-router/qairoe-app-router.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app-script.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-auth-script.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-database-script.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-storage-script.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-app.html">
+<link rel="import" href="../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../bower_components/iron-media-query/iron-media-query.html">
+
+<!-- Custom Element dependencies -->
+
+<link rel="import" href="../web-components/project-map-header/project-map-header.html">
+<link rel="import" href="../web-components/project-map-drawer/project-map-drawer.html">
+<link rel="import" href="../web-components/project-map-toast/project-map-toast.html">
+
+<!--
+`<project-map-app-shell>` is the main core element called in the index.html that
+renders the pages.
+
+Currently we have hard-coded the pages, they are lazily loaded inside the dom-module
+
+In typical use, just slap some `<project-map-app-shell>` at the top of your body:
+
+    <body>
+      <project-map-app-shell></project-map-app-shell>
+
+Wham! It's all awesome now!
+-->
+<dom-module id="project-map-app-shell">
+  <!-- Lazy loaded dependencies -->
+  <!-- LAZY LOADER STARTS HERE -->
+  <link rel="lazy-import" href="/pages/home-page/home-page.html" group="home-page">
+  <link rel="lazy-import" href="/pages/first-page/first-page.html" group="first-page">
+  <link rel="lazy-import" href="/pages/second-page/second-page.html" group="second-page">
+  <link rel="lazy-import" href="/pages/not-authorized-page/not-authorized-page.html" group="not-authorized-page">
+  <link rel="lazy-import" href="/pages/not-found-page/not-found-page.html" group="not-found-page">
+  <!-- LAZY LOADER ENDS HERE -->
+
+  <template>
+    <style is="custom-style">
+    </style>
+
+    <iron-media-query id="mq-phone"
+        full
+        query="(max-width:768px)"
+        query-matches="{{app.isPhoneSize}}"></iron-media-query>
+
+    <!-- DATABASE APP AUTH HERE -->
+    <firebase-app 
+        auth-domain="[[config.authDomain]]"
+        database-url="[[config.databaseURL]]"
+        api-key="[[config.apiKey]]"
+        storage-bucket="[[config.storageBucket]]"></firebase-app>
+
+    <qairoe-app-layout scroll-progress="{{scrollProgress}}">
+
+      <project-map-header 
+        main-header 
+        navigation-list="[[navigationList]]" 
+        scroll-progress="{{scrollProgress}}"
+        route="[[currentRoute]]"
+        user="{{user}}"
+        fixed></project-map-header>
+      <project-map-drawer 
+        main-drawer 
+        navigation-list="[[navigationList]]" 
+        scroll-progress="{{scrollProgress}}"
+        route="[[currentRoute]]" 
+        user="{{user}}"></project-map-drawer>
+
+      <qairoe-app-router
+          main-content
+          current-route="{{currentRoute}}"
+          parent-tag-name="project-map-app-shell"
+          on-view-loaded="viewLoaded">
+
+        <!-- ROUTER STARTS HERE -->
+        <home-page route="/" user="[[user]]"></home-page>
+        <first-page route="/first"></first-page>
+        <second-page route="/second"></second-page>
+        <not-authorized-page route="not-authorized"></not-authorized-page>
+        <not-found-page route="not-found"></not-found-page>
+        <!-- ROUTER ENDS HERE -->
+
+      </qairoe-app-router>
+    </qairoe-app-layout>
+
+    <project-map-toast id="toast" app="{{app}}"></project-map-toast>
+  </template>
+  <script>
+    var config = {
+      apiKey: "AIzaSyB5Mzf2ohRv4rdImrZ5QUA90lS-azxZIvI",
+      authDomain: "project-map-b838e.firebaseapp.com",
+      databaseURL: "https://project-map-b838e.firebaseio.com",
+      storageBucket: "project-map-b838e.appspot.com",
+      messagingSenderId: "346597018754"
+    };
+
+    Polymer({
+      is: 'project-map-app-shell',
+
+      properties: {
+        navigationList: {
+          type: Array,
+          readOnly: true,
+          value: function() {
+            return [
+              // {
+              //   label: 'Home',
+              //   url: '/'
+              // },
+              // {
+              //   label: 'First Page',
+              //   url: '/first'
+              // },
+              // {
+              //   label: 'Second Page',
+              //   url: '/second'
+              // }
+            ];
+          }
+        },
+        scrollProgress: {
+          type: Number
+        },
+        user: {
+          type: Object
+        },
+        route: {
+          type: String
+        },
+        config: {
+          type: Object,
+          value: function() {
+            return config;
+          }
+        },
+        app: {
+          type: Object,
+          notify: true,
+          value: function () {
+            return {};
+          }
+        },
+      },
+
+      ready: function() {
+
+        Polymer.RenderStatus.afterNextRender(this, function () {
+          if (PROJECTMAP && PROJECTMAP.ServiceWorkerRegistration) {
+            PROJECTMAP.ServiceWorkerRegistration.register();
+          }     
+          this.fire('project-map-app-shell-ready');         
+        }.bind(this));
+      },
+
+      viewLoaded: function() {
+        console.log('loaded')
+        if (PROJECTMAP && PROJECTMAP.Elements && PROJECTMAP.Elements.Loader) {
+          PROJECTMAP.Elements.Loader.style.cssText = "display: none";
+          
+        }
+
+        if (PROJECTMAP.LoaderTimerShort) {
+          clearTimeout(PROJECTMAP.LoaderTimerShort);
+          PROJECTMAP.LoaderTimerShort = null;
+        }
+
+        if (PROJECTMAP.LoaderTimerShorter) {
+          clearTimeout(PROJECTMAP.LoaderTimerShorter);
+          PROJECTMAP.LoaderTimerShorter = null;
+        }
+
+        if (PROJECTMAP.LoaderTimer) {
+          console.log('clearing timer')
+          clearTimeout(PROJECTMAP.LoaderTimer);
+          PROJECTMAP.LoaderTimer = null;
+        }
+
+        if (PROJECTMAP.LoaderTimerLong) {
+          clearTimeout(PROJECTMAP.LoaderTimerLong);
+          PROJECTMAP.LoaderTimerLong = null;
+        }
+
+        if (PROJECTMAP.LoaderMessagesInterval) {
+          clearInterval(PROJECTMAP.LoaderMessagesInterval);
+          PROJECTMAP.LoaderMessagesInterval = null
+        }
+
+        if (window.slowNetwork) {
+          try {
+            Raven.captureMessage('Slow loading done', {time: (((new Date()).getTime() - window.slowNetwork.getTime())/ 1000)});
+            window.slowNetwork = null;
+          } catch(e) {
+            Raven.captureError(e);
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

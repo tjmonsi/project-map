@@ -1,0 +1,18 @@
+//
+
+@import 'styles/variables';
+
+.project-map-navigation-header {
+  .project-map-navigation-item {
+    color: $light;
+    text-decoration: none;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+}
+
+.project-map-navigation-item {
+  &.iron-selected {
+    font-weight: bold;
+  }
+}

@@ -1,0 +1,61 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../web-components/project-map-utils/project-map-utils-behavior.html">
+
+<script>
+  (function(){
+    'use strict';
+    /** @polymerBehavior PROJECTMAP.ProjectMapUserBehavior */
+    PROJECTMAP.ProjectMapUserBehaviorImpl = {
+
+      properties: {
+        user: {
+          type: Object,
+          notify: true,
+          value: function() { return null; },
+        },
+        signedIn: {
+          type: Boolean,
+          notify: true,
+          value: false
+        },
+      },
+
+      _displayName: function(user) {
+        if (user) return user.displayName ? user.displayName : user.email;
+      },
+      
+      _loginSuccess: function(result) {
+        this._showMessage('Welcome ' + result.user.displayName + '!');
+      },
+      
+      _logoutSuccess: function(result) {
+        console.log('logout', result);
+        this._showMessage('Goodbye!');        
+      },
+
+      login: function() {
+        if (this.$.auth && this.$.auth.signInWithPopup) {
+          this.$.auth.signInWithPopup().then(this._loginSuccess.bind(this)).catch(this._catchError.bind(this));
+        } else {
+          this._catchError(new Error('no auth component found'));
+        }
+      },
+
+      logout: function() {
+        if (this.user) {
+          if (this.$.auth && this.$.auth.signOut) {
+            this.$.auth.signOut().then(this._logoutSuccess.bind(this)).catch(this._catchError.bind(this));
+          } else {
+            this._catchError(new Error('no auth component found'));
+          }
+        } else {
+          this._showMessage('You are already logged out.');
+        }
+      },
+    };
+    PROJECTMAP.ProjectMapUserBehavior = [
+      PROJECTMAP.ProjectMapUtilsBehavior,
+      PROJECTMAP.ProjectMapUserBehaviorImpl
+    ];
+  })();
+</script>

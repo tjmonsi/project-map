@@ -1,0 +1,169 @@
+<!-- Polymer dependencies -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/google-map/google-map.html">
+<link rel="import" href="../../bower_components/google-map/google-map-marker.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-map-info/paper-map-info.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+
+<!-- Style dependency -->
+<link rel="import" href="home-page-style.html">
+
+<dom-module id="home-page">
+  <template>
+    <style is="custom-style" include="home-page-style">
+      :host {
+        display: block;
+      }
+    </style>
+
+    <firebase-query 
+        path="/alpha/prices"
+        data="{{prices}}"></firebase-query>
+
+    <google-map
+        api-key="AIzaSyB5Mzf2ohRv4rdImrZ5QUA90lS-azxZIvI"
+        latitude="14.5958522"
+        longitude="121.0301096" 
+        zoom="13"
+        click-events
+        on-google-map-click="_googleMapClick">
+
+        <template is="dom-repeat" items="[[prices]]">
+          <google-map-marker id="prices-[[item.$key]]" latitude="[[item.latitude]]" longitude="[[item.longitude]]">
+            Price: Php [[item.price]]<br/>
+            Contact: [[item.displayName]]<br/>
+            Email: <a href="mailto:[[item.email]]">[[item.email]]</a><br/>
+            Telephone: <a href="tel:[[item.tel]]">[[item.tel]]</a>
+          </google-map-marker>
+        </template>
+
+        <template is="dom-if" if="[[newPin]]">
+          <google-map-marker id="new-pin"></google-map-marker>
+          <paper-map-info id="new-pin-info">
+            <h4>Please put a price and contact information</h4>
+            <paper-input id="price" label="Price">
+              <div prefix>Php&nbsp;</div>
+            </paper-input>
+            <paper-input id="tel" label="Telephone"></paper-input>
+            <paper-button on-tap="_cancelPrice">
+              Cancel
+            </paper-button>
+            <template is="dom-if" if="[[!submitting]]">
+              <paper-button on-tap="_submitPrice">
+                Submit
+              </paper-button>
+            </template>
+            <template is="dom-if" if="[[submitting]]">
+              <paper-spinner active></paper-spinner>
+            </template>
+          </paper-map-info>
+        </template>
+
+    </google-map>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'home-page',
+
+      properties: {
+        user: {
+          type: Object
+        },
+
+        newPin: {
+          type: Boolean,
+          value: false
+        },
+
+        submitting: {
+          type: Boolean,
+          value: false
+        },
+
+        prices: {
+          type: Array
+        }
+      },
+
+      observers: [
+        '_check(prices.splices)'
+      ],
+
+      _check: function(e) {
+        console.log(this.prices)
+      },
+
+      ready: function() {
+        if (navigator.geolocation) {
+          console.log('Geolocation is supported!');
+          navigator.geolocation.watchPosition(this._geoSuccess.bind(this), this._geoError.bind(this), {
+            enableHighAccuracy: true
+          });
+        }
+      },
+
+      _geoSuccess: function(position) {
+        // console.log(position)
+        this.$$('google-map').latitude = position.coords.latitude;
+        this.$$('google-map').longitude = position.coords.longitude;
+      },
+
+      _geoError: function(error) {
+        console.log('Error occurred. Error code: ' + error.code);
+      },
+
+      _googleMapClick: function(e) {
+        console.log(e);
+        
+        var data = e.detail;
+
+        if (this.user) {          
+          var latitude = data.latLng.lat();
+          var longitude = data.latLng.lng();
+
+          this.newPin = true;
+          
+          Polymer.RenderStatus.afterNextRender(this, function () {
+            this.$$('#new-pin').hidden = false;
+            this.$$('#new-pin').latitude = latitude;
+            this.$$('#new-pin').longitude = longitude;
+            this.$$('#new-pin-info').showInfoWindow(this.$$('#new-pin').marker);
+          });    
+        }
+      },
+
+      _cancelPrice: function() {
+        this.newPin = false;
+        this.$$('#new-pin').hidden = true;
+        this.$$('#price').value = '';
+        this.$$('#tel').value = '';
+        this.submitting = false;
+      },
+
+      _submitPrice: function() {
+        this.submitting = true;
+        var key = firebase.database().ref('/alpha/prices').push().key;
+
+        if (this.user) {
+          firebase.database().ref(`/alpha/prices/${key}`).set({
+            uid: this.user.uid,
+            email: this.user.email,
+            displayName: this.user.displayName,
+            price: this.$$('#price').value,
+            tel: this.$$('#tel').value,
+            longitude: this.$$('#new-pin').longitude,
+            latitude: this.$$('#new-pin').latitude
+          }).then(() => {
+            PROJECTMAP.Elements.Template.$.toast.showMessage('Saved');
+            this._cancelPrice();
+          });
+        }
+        
+      }
+    });
+  </script>
+</dom-module>

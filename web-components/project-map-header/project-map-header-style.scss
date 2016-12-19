@@ -1,0 +1,17 @@
+@import 'styles/variables';
+@import 'styles/mixins';
+
+@include hide-on-tablet-landscape-up();
+
+app-header {
+  background-color: $brand-primary;
+  color: $light;
+  
+  app-toolbar {
+    // height: $navigation-header-height;
+    
+    span[main-title] {
+      margin-left: $navigation-header-margin-left;
+    }
+  }  
+}

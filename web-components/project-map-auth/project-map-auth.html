@@ -1,0 +1,60 @@
+<!-- Polymer dependencies -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+<link rel="import" href="../../web-components/project-map-user/project-map-user-behavior.html">
+
+<!-- Style dependency -->
+<link rel="import" href="project-map-auth-style.html">
+
+<dom-module id="project-map-auth">
+  <template>
+    <style is="custom-style" include="project-map-auth-style">
+      :host {
+        display: block;
+      }
+    </style>
+
+    <firebase-auth
+      id="auth"
+      provider="google"
+      user="{{user}}">
+    </firebase-auth>
+
+    <div class="project-map-auth-header">
+      <template is="dom-if" if="[[!user]]">
+        <a 
+          href="#"
+          class="project-map-auth-item"
+          on-tap="login">
+          Login
+        </a>
+      </template>
+      <template is="dom-if" if="[[user]]">
+        <a 
+          href="#"
+          class="project-map-auth-item"
+          on-tap="logout">
+          Logout
+        </a>
+      </template>
+    </div>
+    
+  </template>
+
+  <script>
+    Polymer({
+      is: 'project-map-auth',
+
+      properties: {
+        user: {
+          type: Object,
+          notify: true
+        }
+      },
+
+      behaviors: [
+        PROJECTMAP.ProjectMapUserBehavior
+      ]
+    });
+  </script>
+</dom-module>
