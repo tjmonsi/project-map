@@ -18,14 +18,70 @@
           notify: true,
           value: false
         },
+        // roles: {
+        //   type: Object,
+        //   notify: true,
+        //   value: function() { return {}; }
+        // },
+        owner: {
+          type: Object,
+          value: function() { return null; }
+        },
+        userPath: {
+          type: Object,
+          readOnly: true,
+          value: function() { return this._userPath; }
+        },
+        userGroup: {
+          type: String,
+          readOnly: true,
+          value: function() { return this._userGroup; }
+        },
+      },
+
+      get _userGroup() {
+        return 'userGroup';
+      },
+
+      get _userPath() {
+        var options = this._version + '/' + this._userGroup + '/roles';
+        return {
+          profiles: this._version + '/' + this._userGroup + '/profiles',
+          // categories: this._version + '/' + this._userGroup + '/categories',
+          profilePicture: this._version + '/' + this._userGroup + '/profile_picture',
+          // media: this._version + '/' + this._userGroup + '/media',
+          // options: {
+          //   member: options + '/member',
+          //   pending: options + '/pending'
+          // }
+        };
       },
 
       _displayName: function(user) {
         if (user) return user.displayName ? user.displayName : user.email;
       },
+
+      _checkProfile: function(user, ref, profile) {
+        if (!profile.val()) {
+          return firebase.database().ref(ref).set({
+            displayName: user.displayName,
+            email: user.email,
+            image: user.photoURL,
+          }).then(function(){
+            window.location.assign('/profile-page/');
+          });
+        }
+      },
       
       _loginSuccess: function(result) {
         this._showMessage('Welcome ' + result.user.displayName + '!');
+        var ref = `${this.userPath.profiles}/${result.user.uid}`;
+
+        if (firebase) {
+          firebase.database().ref(ref).once('value', this._checkProfile.bind(this, result.user, ref));
+        } else {
+          throw new Error('No firebase app connected');
+        }
       },
       
       _logoutSuccess: function(result) {
