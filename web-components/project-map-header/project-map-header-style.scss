@@ -2,6 +2,8 @@
 @import 'styles/mixins';
 
 @include hide-on-tablet-landscape-up();
+@include hide-on-phone-only();
+@include hide-on-non-desktop();
 
 app-header {
   background-color: $brand-primary;
