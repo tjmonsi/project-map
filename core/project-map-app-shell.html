@@ -33,7 +33,7 @@ Wham! It's all awesome now!
   <!-- Lazy loaded dependencies -->
   <!-- LAZY LOADER STARTS HERE -->
   <link rel="lazy-import" href="/pages/home-page/home-page.html" group="home-page">
-  <link rel="lazy-import" href="/pages/first-page/first-page.html" group="first-page">
+  <link rel="lazy-import" href="/pages/profile-page/profile-page.html" group="profile-page">
   <link rel="lazy-import" href="/pages/second-page/second-page.html" group="second-page">
   <link rel="lazy-import" href="/pages/not-authorized-page/not-authorized-page.html" group="not-authorized-page">
   <link rel="lazy-import" href="/pages/not-found-page/not-found-page.html" group="not-found-page">
@@ -75,11 +75,12 @@ Wham! It's all awesome now!
           main-content
           current-route="{{currentRoute}}"
           parent-tag-name="project-map-app-shell"
-          on-view-loaded="viewLoaded">
+          on-view-loaded="viewLoaded"
+          query-params="{{queryParams}}">
 
         <!-- ROUTER STARTS HERE -->
         <home-page route="/" user="[[user]]"></home-page>
-        <first-page route="/first"></first-page>
+        <profile-page route="/profile-page" user="[[user]]" auth="[[signedIn]]" query-params="[[queryParams]]"></profile-page>
         <second-page route="/second"></second-page>
         <not-authorized-page route="not-authorized"></not-authorized-page>
         <not-found-page route="not-found"></not-found-page>
@@ -112,10 +113,11 @@ Wham! It's all awesome now!
               //   label: 'Home',
               //   url: '/'
               // },
-              // {
-              //   label: 'First Page',
-              //   url: '/first'
-              // },
+              {
+                label: 'Profile Page',
+                url: '/profile-page',
+                auth: true
+              },
               // {
               //   label: 'Second Page',
               //   url: '/second'
@@ -145,6 +147,14 @@ Wham! It's all awesome now!
             return {};
           }
         },
+        signedIn: {
+          type: Boolean,
+          value: false,
+          computed: '_checkSignedIn(user)'
+        },
+        queryParams: {
+          type: Object
+        }
       },
 
       ready: function() {
@@ -155,6 +165,10 @@ Wham! It's all awesome now!
           }     
           this.fire('project-map-app-shell-ready');         
         }.bind(this));
+      },
+
+      _checkSignedIn: function(user) {
+        return !!user;
       },
 
       viewLoaded: function() {
