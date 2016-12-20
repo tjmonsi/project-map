@@ -2,11 +2,8 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/google-map/google-map.html">
 <link rel="import" href="../../bower_components/google-map/google-map-marker.html">
-<link rel="import" href="../../bower_components/paper-input/paper-input.html">
-<link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/paper-map-info/paper-map-info.html">
-<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
 <link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../web-components/project-map-realty-form/project-map-realty-form.html">
 
 <!-- Style dependency -->
 <link rel="import" href="home-page-style.html">
@@ -31,6 +28,10 @@
         click-events
         on-google-map-click="_googleMapClick">
 
+        <google-map-marker id="new-pin" latitude="[[newLat]]" longitude="[[newLng]]" on-google-map-marker-close="_closeNewPin" click-events hidden>
+          <project-map-realty-form id="new-pin-info" user="[[user]]" latitude="[[newLat]]" longitude="[[newLng]]"></project-map-realty-form>
+        </google-map-marker>
+
         <template is="dom-repeat" items="[[prices]]">
           <google-map-marker id="prices-[[item.$key]]" latitude="[[item.latitude]]" longitude="[[item.longitude]]">
             Price: Php [[item.price]]<br/>
@@ -40,27 +41,14 @@
           </google-map-marker>
         </template>
 
-        <template is="dom-if" if="[[newPin]]">
+        
+
+        <!--<template is="dom-if" if="[[newPin]]">
           <google-map-marker id="new-pin"></google-map-marker>
           <paper-map-info id="new-pin-info">
-            <h4>Please put a price and contact information</h4>
-            <paper-input id="price" label="Price">
-              <div prefix>Php&nbsp;</div>
-            </paper-input>
-            <paper-input id="tel" label="Telephone"></paper-input>
-            <paper-button on-tap="_cancelPrice">
-              Cancel
-            </paper-button>
-            <template is="dom-if" if="[[!submitting]]">
-              <paper-button on-tap="_submitPrice">
-                Submit
-              </paper-button>
-            </template>
-            <template is="dom-if" if="[[submitting]]">
-              <paper-spinner active></paper-spinner>
-            </template>
+            
           </paper-map-info>
-        </template>
+        </template>-->
 
     </google-map>
   </template>
@@ -74,16 +62,6 @@
           type: Object
         },
 
-        newPin: {
-          type: Boolean,
-          value: false
-        },
-
-        submitting: {
-          type: Boolean,
-          value: false
-        },
-
         prices: {
           type: Array
         }
@@ -92,6 +70,10 @@
       observers: [
         '_check(prices.splices)'
       ],
+
+      listeners: {
+        'close-new-pin': '_closeNewPin'
+      },
 
       _check: function(e) {
         console.log(this.prices)
@@ -104,6 +86,7 @@
             enableHighAccuracy: true
           });
         }
+        // this.$$('#new-pin').open = false;
       },
 
       _geoSuccess: function(position) {
@@ -117,32 +100,28 @@
       },
 
       _googleMapClick: function(e) {
-        console.log(e);
-        
-        var data = e.detail;
-
         if (this.user) {          
-          var latitude = data.latLng.lat();
-          var longitude = data.latLng.lng();
-
-          this.newPin = true;
-          
-          Polymer.RenderStatus.afterNextRender(this, function () {
+          this.newLat = e.detail.latLng.lat();
+          this.newLng = e.detail.latLng.lng();
+          Polymer.RenderStatus.afterNextRender(this, () => {
             this.$$('#new-pin').hidden = false;
-            this.$$('#new-pin').latitude = latitude;
-            this.$$('#new-pin').longitude = longitude;
-            this.$$('#new-pin-info').showInfoWindow(this.$$('#new-pin').marker);
-          });    
+            this.$$('#new-pin').open = true;
+          });          
         }
       },
 
-      _cancelPrice: function() {
-        this.newPin = false;
+      _closeNewPin: function() {
         this.$$('#new-pin').hidden = true;
-        this.$$('#price').value = '';
-        this.$$('#tel').value = '';
-        this.submitting = false;
+        this.$$('#new-pin').open = false;
       },
+
+      // _cancelPrice: function() {
+      //   this.newPin = false;
+      //   this.$$('#new-pin').hidden = true;
+      //   this.$$('#price').value = '';
+      //   this.$$('#tel').value = '';
+      //   this.submitting = false;
+      // },
 
       _submitPrice: function() {
         this.submitting = true;

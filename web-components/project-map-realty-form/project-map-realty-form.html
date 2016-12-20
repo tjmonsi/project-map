@@ -1,0 +1,56 @@
+<!-- Polymer dependencies -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+
+<!-- Style dependency -->
+<link rel="import" href="project-map-realty-form-style.html">
+
+<dom-module id="project-map-realty-form">
+  <template>
+    <style is="custom-style" include="project-map-realty-form-style">
+      :host {
+        display: block;
+      }
+    </style>
+
+    <h4>Please put a price and images</h4>
+    <paper-input id="price" label="Price">
+      <div prefix>&#8369;&nbsp;</div>
+    </paper-input>
+    <template is="dom-if" if="[[!submitting]]">
+      <paper-button on-tap="_submitPrice">
+        Submit
+      </paper-button>
+    </template>
+    <template is="dom-if" if="[[submitting]]">
+      <paper-spinner active></paper-spinner>
+    </template>
+
+    <paper-button on-tap="_closeForm">
+      Cancel
+    </paper-button>
+    
+  </template>
+
+  <script>
+    Polymer({
+      is: 'project-map-realty-form',
+
+      properties: {
+        user: {
+          type: Object
+        },
+        submitting: {
+          type: Boolean,
+          value: false
+        },
+      },
+
+      _closeForm: function() {
+        this.fire('close-new-pin');
+      }
+    });
+  </script>
+</dom-module>
