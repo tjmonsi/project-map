@@ -10,6 +10,8 @@
   width: 200px;
   height: 200px;
   background: #ddd;
+  transition: transform 350ms ease-in-out;
+  will-change: transform;
   --iron-image-placeholder: #{'{ 
     border-radius: 50%;
     background-color: $brand-inverse; 

@@ -24,10 +24,13 @@
       <div class="horizontal layout">
         <div class="flex hide-on-phone-only"></div>
         <div class="flex-3">
-
-          <iron-image class="avatar" src="[[data.image]]" preload fade sizing="contain"></iron-image>
-
-
+          <iron-image class="avatar" src="[[data.image]]" preload fade sizing="cover"></iron-image>
+          <h2>[[data.displayName]]</h2>
+          <p>
+            Email: <a href="mailto:[[data.email]]">[[data.email]]</a><br/>
+            Phone: <a href="tel:[[data.phone]]">[[data.phone]]</a><br/>
+            PRC License: [[data.license]]
+          </p>
         </div>
         <div class="flex hide-on-phone-only"></div>
       </div>
