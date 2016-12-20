@@ -1,29 +1,48 @@
 <!-- Polymer dependencies -->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../web-components/project-map-user/project-map-user-behavior.html">
 
 <!-- Style dependency -->
 <link rel="import" href="project-map-profile-style.html">
 
 <dom-module id="project-map-profile">
   <template>
-    <style is="custom-style" include="project-map-profile-style">
+    <style is="custom-style" include="project-map-profile-style iron-flex iron-flex-alignment iron-flex-factors">
       :host {
         display: block;
       }
     </style>
+    
+    <template is="dom-if" if="[[user]]">
+      <firebase-document 
+          id="hello"
+          path="[[userPath.profiles]]/[[user.uid]]"
+          data="{{data}}"></firebase-document>
+      <div class="horizontal layout">
+        <div class="flex hide-on-phone-only"></div>
+        <div class="flex-3">
 
-    <div class="card">
-      <div class="circle">1</div>
-      <h1>View One</h1>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
-    </div>
+          <iron-image class="avatar" src="[[data.image]]" preload fade sizing="contain"></iron-image>
+
+
+        </div>
+        <div class="flex hide-on-phone-only"></div>
+      </div>
+    </template>
+    
     
   </template>
 
   <script>
     Polymer({
-      is: 'project-map-profile'
+      is: 'project-map-profile',
+
+      behaviors: [
+        PROJECTMAP.ProjectMapUserBehavior
+      ]
     });
   </script>
 </dom-module>

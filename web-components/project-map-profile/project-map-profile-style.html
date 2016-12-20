@@ -2,6 +2,20 @@
 <dom-module id="project-map-profile-style">
 <template>
 <style>
+@media (max-width: 599px) {
+  .hide-on-phone-only {
+    display: none; } }
+
+.avatar {
+  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  background: #ddd;
+  --iron-image-placeholder: {  border-radius: 50%; background-color: $brand-inverse;  }; }
+  @media (max-width: 599px) {
+    .avatar {
+      width: 100px;
+      height: 100px; } }
 
 </style>
 </template>

@@ -1,1 +1,23 @@
 //
+
+@import 'styles/mixins';
+
+@include hide-on-phone-only();
+
+
+.avatar {
+  border-radius: 50%;
+  width: 200px;
+  height: 200px;
+  background: #ddd;
+  --iron-image-placeholder: #{'{ 
+    border-radius: 50%;
+    background-color: $brand-inverse; 
+  }'};
+
+  @include phone-only {
+    width: 100px;
+    height: 100px;
+  }
+}
+
