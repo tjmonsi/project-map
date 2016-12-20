@@ -13,7 +13,7 @@
 
 <dom-module id="profile-page">
   <template>
-    <style is="custom-style" include="profile-page-style iron-flex iron-flex-alignment">
+    <style is="custom-style" include="profile-page-style iron-flex iron-flex-alignment iron-flex-factors">
       :host {
         display: block;
       }
@@ -28,16 +28,23 @@
         </template>
         <div class="flex">
           <project-map-profile user="[[user]]"></project-map-profile>
-          <template is="dom-if" if="[[edit]]">
-            <a href="/profile-page">
-              <paper-button raised>Close Edit</paper-button>
-            </a>
-          </template>
-          <template is="dom-if" if="[[!edit]]">
-            <a href="/profile-page?edit=true">
-              <paper-button raised>Edit</paper-button>
-            </a>
-          </template>
+          <div class="horizontal layout">
+            <div class="flex hide-on-phone-only"></div>
+            <div class="flex-3">
+              <template is="dom-if" if="[[edit]]">
+                <a href="/profile-page">
+                  <paper-button raised>Close Edit</paper-button>
+                </a>
+              </template>
+              <template is="dom-if" if="[[!edit]]">
+                <a href="/profile-page?edit=true">
+                  <paper-button raised>Edit</paper-button>
+                </a>
+              </template>
+            </div>
+            <div class="flex hide-on-phone-only"></div>
+          </div>
+          
         </div>
       </div>
     </template>

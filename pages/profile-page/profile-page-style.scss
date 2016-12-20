@@ -2,10 +2,9 @@
   display: block;
   padding: 10px;
 }
+@import 'styles/mixins';
 
-:host {
-  padding-top: 75px;
-}
+@include hide-on-phone-only();
 
 project-map-profile-form {
   min-width: 250px;
