@@ -62,8 +62,7 @@ Wham! It's all awesome now!
         navigation-list="[[navigationList]]" 
         scroll-progress="{{scrollProgress}}"
         route="[[currentRoute]]"
-        user="{{user}}"
-        fixed></project-map-header>
+        user="{{user}}"></project-map-header>
       <project-map-drawer 
         main-drawer 
         navigation-list="[[navigationList]]" 
@@ -109,12 +108,12 @@ Wham! It's all awesome now!
           readOnly: true,
           value: function() {
             return [
-              // {
-              //   label: 'Home',
-              //   url: '/'
-              // },
               {
-                label: 'Profile Page',
+                label: 'Home',
+                url: '/'
+              },
+              {
+                label: 'Profile',
                 url: '/profile-page',
                 auth: true
               },
