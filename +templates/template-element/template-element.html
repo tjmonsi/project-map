@@ -1,0 +1,29 @@
+<!-- Polymer dependencies -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<!-- Style dependency -->
+<link rel="import" href="template-element-style.html">
+
+<dom-module id="template-element">
+  <template>
+    <style is="custom-style" include="template-element-style">
+      :host {
+        display: block;
+      }
+    </style>
+
+    <div class="card">
+      <div class="circle">1</div>
+      <h1>View One</h1>
+      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.
+      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
+    </div>
+    
+  </template>
+
+  <script>
+    Polymer({
+      is: 'template-element'
+    });
+  </script>
+</dom-module>
