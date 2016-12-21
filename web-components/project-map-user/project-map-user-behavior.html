@@ -57,14 +57,30 @@
         };
       },
 
+      _checkIfNavAuth: function(auth, user) {
+        return (auth && user) || (!auth);
+      },
+
       _displayName: function(user) {
         if (user) return user.displayName ? user.displayName : user.email;
       },
 
       _checkProfile: function(user, ref, profile) {
         if (!profile.val()) {
+          var displayName = user.displayName.trim();
+          var displayNameArray = displayName.split(' ');
+          var lastName = displayNameArray.pop();
+          while (displayNameArray.length > 1 && (
+              displayNameArray[displayNameArray.length - 1].toLowerCase() === 'dela' || 
+              displayNameArray[displayNameArray.length - 1].toLowerCase() === 'la' ||
+              displayNameArray[displayNameArray.length - 1].toLowerCase() === 'de') ) {
+            lastName = displayNameArray.pop() + lastName;
+          }
+          var firstName = displayNameArray.join(' ');
           return firebase.database().ref(ref).set({
-            displayName: user.displayName,
+            displayName: displayName,
+            firstName: firstName,
+            lastName: lastName,
             email: user.email,
             image: user.photoURL,
           }).then(function(){

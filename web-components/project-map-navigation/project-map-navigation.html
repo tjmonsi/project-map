@@ -1,5 +1,11 @@
 <!-- Polymer dependencies -->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../../web-components/project-map-user/project-map-user-behavior.html">
+
+
 
 <!-- Style dependency -->
 <link rel="import" href="project-map-navigation-style.html">
@@ -16,9 +22,11 @@
       <div class="project-map-navigation-header hide-on-phone">
         <iron-selector class="horizontal layout" attr-for-selected="route" selected$="[[route]]">
           <template is="dom-repeat" items="[[navigationList]]">
+            <template is="dom-if" if="[[_checkIfNavAuth(item.auth, user)]]">
               <a route$="[[item.route]]" href$="[[item.url]]" class="project-map-navigation-item">
                 [[item.label]]
-              </a>  
+              </a>
+            </template>
           </template>
         </iron-selector>  
       </div>
@@ -28,11 +36,13 @@
       <div class="project-map-navigation-drawer">
         <paper-listbox class="project-map-navigation-drawer-container" attr-for-selected="route" selected$="[[route]]">
           <template is="dom-repeat" items="[[navigationList]]">
-            <a href$="[[item.url]]" class="project-map-navigation-item">
-              <paper-item route$="[[item.route]]" on-tap="_toggleDrawer">
-                [[item.label]]
-              </paper-item>
-            </a>
+            <template is="dom-if" if="[[_checkIfNavAuth(item.auth, user)]]">
+              <a href$="[[item.url]]" class="project-map-navigation-item">
+                <paper-item route$="[[item.route]]" on-tap="_toggleDrawer">
+                  [[item.label]]
+                </paper-item>
+              </a>
+            </template>
           </template>
         </paper-listbox>
       </div>
@@ -69,7 +79,12 @@
 
       _toggleDrawer: function() {
         this.fire('toggle-drawer', {});
-      }
+      },
+
+      behaviors: [
+        PROJECTMAP.ProjectMapUserBehavior
+
+      ]
     });
   </script>
 </dom-module>

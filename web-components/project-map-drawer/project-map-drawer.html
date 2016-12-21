@@ -3,7 +3,7 @@
 
 <link rel="import" href="../../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../../bower_components/app-layout/app-toolbar/app-toolbar.html">
-<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../../web-components/project-map-navigation/project-map-navigation.html">
 
 <!-- Style dependency -->
 <link rel="import" href="project-map-drawer-style.html">
@@ -18,14 +18,8 @@
 
     <app-drawer>
       <app-toolbar>Menu</app-toolbar>
-      <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-        <template is="dom-repeat" items="[[navigationList]]">
-          <a name$="[[item.page]]" href$="[[item.url]]" on-tap="toggleDrawer">
-            [[item.label]]
-          </a>
-        </template>
-
-      </iron-selector>
+      <!-- Navigation -->
+      <project-map-navigation drawer navigation-list="[[navigationList]]" user="{{user}}" route="[[route]]"></project-map-navigation>
     </app-drawer>
   </template>
 
