@@ -1,5 +1,9 @@
 <!-- Polymer dependencies -->
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../web-components/project-map-user/project-map-user-behavior.html">
 
 <!-- Style dependency -->
 <link rel="import" href="project-map-profile-form-style.html">
@@ -12,18 +16,67 @@
       }
     </style>
 
-    <div class="card">
-      <div class="circle">1</div>
-      <h1>View One</h1>
-      <p>Ut labores minimum atomorum pro. Laudem tibique ut has.
-      <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
-    </div>
+    <template is="dom-if" if="[[user]]">
+      <firebase-document 
+          path="[[userPath.profiles]]/[[user.uid]]"
+          data="{{data}}"></firebase-document>
+      <paper-input id="first-name" label="First Name" value="{{data.firstName}}"></paper-input>
+      <paper-input id="last-name" label="Last Name" value="{{data.lastName}}"></paper-input>
+      <paper-input id="avatar" label="Change Picture" type="file" on-change="_uploadAvatar" accept="image/*"></paper-input>
+      <template is="dom-if" if="[[_avatarTask]]">
+        <paper-progress class="avatar-progress" min="0" max="100" value="[[_avatarBytesTransferred]]"></paper-progress>
+      </template>
+      <paper-input id="telephone" label="Phone" value="{{data.phone}}"></paper-input>
+      <paper-input id="telephone" label="PRC License:" value="{{data.license}}"></paper-input>
+    </template>
     
   </template>
 
   <script>
     Polymer({
-      is: 'project-map-profile-form'
+      is: 'project-map-profile-form',
+
+      // properties: {
+      //   uploadingAvatar: {
+      //     type: Boolean,
+      //     value: false
+      //   }
+      // },
+
+      observers: [
+        '_changeDisplayName(data.firstName, data.lastName)'
+      ],
+
+      _avatarTask: null,
+
+      _avatarBytesTransferred: 0,
+
+      _changeDisplayName: function(firstName, lastName) {
+        this.set('data.displayName', firstName + ' ' + lastName);
+      },
+
+      _uploadAvatar: function(e) {
+        if (e.srcElement.inputElement.files.length === 1) {
+          var file = e.srcElement.inputElement.files[0];
+          this._showMessage('Uploading')
+          this._avatarBytesTransferred = 0;
+          this._avatarTask = firebase.storage().ref().child(this.userPath.profilePicture + '/' + this.user.uid).put(file);
+          this._avatarTask.on('state_changed', (snapshot) => {
+            this._avatarBytesTransferred = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          });
+          this._avatarTask.then((snapshot) => {
+            firebase.database().ref(`${this.userPath.profiles}/${this.user.uid}/image`).set(snapshot.downloadURL).then(() => {
+              this._showMessage('Upload complete');
+              this._avatarTask = null;
+            }).catch(this._catchError.bind(this));
+          }, this._catchError.bind(this))
+        }
+        
+      },
+
+      behaviors: [
+        PROJECTMAP.ProjectMapUserBehavior
+      ]
     });
   </script>
 </dom-module>

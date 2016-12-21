@@ -18,7 +18,6 @@
     
     <template is="dom-if" if="[[user]]">
       <firebase-document 
-          id="hello"
           path="[[userPath.profiles]]/[[user.uid]]"
           data="{{data}}"></firebase-document>
       <div class="horizontal layout">
