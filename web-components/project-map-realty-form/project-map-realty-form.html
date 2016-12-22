@@ -117,10 +117,10 @@
               value: true
             }
 
-            var transaction = (oldValue) => {
+            var transaction = (p, oldValue) => {
               if (oldValue) {
-                oldValue.min = oldValue.min <= price ? oldValue.min : price;
-                oldValue.max = oldValue.max >= price ? oldValue.max : price;
+                oldValue.min = oldValue.min <= p ? oldValue.min : p;
+                oldValue.max = oldValue.max >= p ? oldValue.max : p;
                 oldValue.points[key] = {
                   value: true
                 }
@@ -143,7 +143,7 @@
             z10q.on('key_entered', (zkey, loc, dist) => {
               clearTimeout(noZ10point);
               z10point = z10point || zkey;
-              firebase.database().ref(this._realtyPath.rangeZooms.z10 + '/' + zkey).transaction(transaction)
+              firebase.database().ref(this._realtyPath.rangeZooms.z10 + '/' + zkey).transaction(transaction.bind(this, price))
               z10q.cancel();
             });
 
@@ -160,7 +160,7 @@
             z12q.on('key_entered', (zkey, loc, dist) => {
               clearTimeout(noZ12point);
               z12point = z12point || zkey;
-              firebase.database().ref(this._realtyPath.rangeZooms.z12 + '/' + zkey).transaction(transaction)
+              firebase.database().ref(this._realtyPath.rangeZooms.z12 + '/' + zkey).transaction(transaction.bind(this, price))
               z12q.cancel();
             });
 
@@ -176,7 +176,7 @@
             z14q.on('key_entered', (zkey, loc, dist) => {
               clearTimeout(noZ14point);
               z14point = z14point || zkey;
-              firebase.database().ref(this._realtyPath.rangeZooms.z14 + '/' + zkey).transaction(transaction)
+              firebase.database().ref(this._realtyPath.rangeZooms.z14 + '/' + zkey).transaction(transaction.bind(this, price))
               z14q.cancel();
             });
           });
