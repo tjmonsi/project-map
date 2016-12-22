@@ -2,8 +2,12 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../bower_components/google-map/google-map.html">
 <link rel="import" href="../../bower_components/google-map/google-map-marker.html">
-<link rel="import" href="../../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../bower_components/paper-map-info/paper-map-info.html">
+<link rel="import" href="../../web-components/project-map-scripts/geofire.html">
+<link rel="import" href="../../web-components/project-map-scripts/underscore.html">
 <link rel="import" href="../../web-components/project-map-realty-form/project-map-realty-form.html">
+<link rel="import" href="../../web-components/project-map-realty/project-map-realty-behavior.html">
 
 <!-- Style dependency -->
 <link rel="import" href="home-page-style.html">
@@ -16,31 +20,64 @@
       }
     </style>
 
-    <firebase-query 
+    <!--<firebase-query 
         path="/alpha/prices"
-        data="{{prices}}"></firebase-query>
-
+        data="{{prices}}"></firebase-query>-->
+    <!--[[user.uid]]-->
     <google-map
         api-key="AIzaSyB5Mzf2ohRv4rdImrZ5QUA90lS-azxZIvI"
-        latitude="14.5958522"
-        longitude="121.0301096" 
-        zoom="13"
+        latitude="{{latitude}}"
+        longitude="{{longitude}}" 
+        zoom="{{zoom}}"
         click-events
-        on-google-map-click="_googleMapClick">
+        on-google-map-click="_googleMapClick"
+        on-google-map-drag="_googleMapDrag">
+      
+      <template is="dom-if" if="[[user.uid]]">
 
         <google-map-marker id="new-pin" latitude="[[newLat]]" longitude="[[newLng]]" on-google-map-marker-close="_closeNewPin" click-events hidden>
-          <project-map-realty-form id="new-pin-info" user="[[user]]" latitude="[[newLat]]" longitude="[[newLng]]"></project-map-realty-form>
         </google-map-marker>
 
-        <template is="dom-repeat" items="[[prices]]">
-          <google-map-marker id="prices-[[item.$key]]" latitude="[[item.latitude]]" longitude="[[item.longitude]]">
-            Price: Php [[item.price]]<br/>
-            Contact: [[item.displayName]]<br/>
-            Email: <a href="mailto:[[item.email]]">[[item.email]]</a><br/>
-            Telephone: <a href="tel:[[item.tel]]">[[item.tel]]</a>
-          </google-map-marker>
-        </template>
+        
+      </template>
 
+      <template is="dom-if" if="[[newPin]]">
+        <paper-map-info id="new-pin-info-container">
+          <project-map-realty-form id="new-pin-info" uid="[[user.uid]]" latitude="[[newLat]]" longitude="[[newLng]]"></project-map-realty-form>
+        </paper-map-info>
+      </template>
+      
+
+      <!--<template is="dom-repeat" items="[[geolocations]]">
+        <!--<firebase-document ></firebase-document>-->
+      <!--</template>-->-->
+
+      <template is="dom-repeat" items="[[geolocations]]">
+        <google-map-marker id="prices-[[item.$key]]" latitude="[[returnCoords(item.coords, 0)]]" longitude="[[returnCoords(item.coords, 1)]]" hidden$="[[_hideGeolocations(zoom)]]">
+          Price: Php [[item.price]]<br/>
+          Contact: [[item.displayName]]<br/>
+          Email: <a href="mailto:[[item.email]]">[[item.email]]</a><br/>
+          Telephone: <a href="tel:[[item.tel]]">[[item.phone]]</a>
+        </google-map-marker>
+      </template>
+
+      <template is="dom-repeat" items="[[g14loc]]">
+        <google-map-marker id="prices-[[item.$key]]" class="g14-markers" latitude="[[returnCoords(item.coords, 0)]]" longitude="[[returnCoords(item.coords, 1)]]" hidden$="[[_hideG14(zoom)]]">
+          Price Range: Php [[item.min]] - Php [[item.max]]<br/>
+        </google-map-marker>
+      </template>
+
+      <template is="dom-repeat" items="[[g12loc]]">
+        <google-map-marker id="prices-[[item.$key]]" class="g12-markers" latitude="[[returnCoords(item.coords, 0)]]" longitude="[[returnCoords(item.coords, 1)]]" hidden$="[[_hideG12(zoom)]]">
+          Price Range: Php [[item.min]] - Php [[item.max]]<br/>
+        </google-map-marker>
+      </template>
+
+      <template is="dom-repeat" items="[[g10loc]]">
+        <google-map-marker id="prices-[[item.$key]]" class="g10-markers" latitude="[[returnCoords(item.coords, 0)]]" longitude="[[returnCoords(item.coords, 1)]]" hidden$="[[_hideG10(zoom)]]">
+          Price Range: Php [[item.min]] - Php [[item.max]]<br/>
+        </google-map-marker>
+      </template>
         
 
         <!--<template is="dom-if" if="[[newPin]]">
@@ -62,37 +99,205 @@
           type: Object
         },
 
-        prices: {
-          type: Array
+        geolocations: {
+          type: Array,
+          value: []
+        },
+
+        g10loc: {
+          type: Array,
+          value: []
+        },
+
+        g12loc: {
+          type: Array,
+          value: []
+        },
+
+        g14loc: {
+          type: Array,
+          value: []
+        },
+
+        latitude: {
+          type: Number,
+          value: 14.5958522,
+          observer: ''
+        },
+
+        longitude: {
+          type: Number,
+          value: 121.0301096
+        },
+
+        zoom: {
+          type: Number,
+          value: 15
+        },
+
+        newPin: {
+          type: Boolean,
+          value: false
         }
       },
 
-      observers: [
-        '_check(prices.splices)'
+      behaviors: [
+        PROJECTMAP.ProjectMapRealtyBehavior
       ],
+
+      _geoQuery: null,
+
+      _g10q: null,
+
+      _g12q: null,
+
+      _g14q: null,
+
+      _geoFire: null,
+
+      _g10f: null,
+
+      _g12f: null,
+
+      _g14f: null,
+
+      _lastZoom: 0,
+
+      _geoKeys: {},
+
+      observers: [
+        '_queryPrices(latitude, longitude, zoom)'
+      ],
+
+      // observers: [
+      //   '_check(geolocations.splices)'
+      // ],
 
       listeners: {
         'close-new-pin': '_closeNewPin'
       },
 
       _check: function(e) {
-        console.log(this.prices)
+        console.log(e)
       },
 
-      ready: function() {
+      attached: function() {
         if (navigator.geolocation) {
           console.log('Geolocation is supported!');
-          navigator.geolocation.watchPosition(this._geoSuccess.bind(this), this._geoError.bind(this), {
+          navigator.geolocation.getCurrentPosition(this._geoSuccess.bind(this), this._geoError.bind(this), {
             enableHighAccuracy: true
           });
         }
+        
+
         // this.$$('#new-pin').open = false;
+      },
+
+      returnCoords: function(coords, index) {
+        return coords[index]
+      },
+
+      _hideGeolocations: function(zoom) {
+        return zoom < 14
+      },
+
+      _hideG14: function(zoom) {
+        return zoom < 12 || zoom >= 14
+      },
+
+      _hideG12: function(zoom) {
+        return zoom < 10 || zoom >= 12
+      },
+
+      _hideG10: function(zoom) {
+        return zoom >= 10
+      },
+
+      _queryPrices: function(latitude, longitude, zoom) {
+        this._geoFire = new GeoFire(firebase.database().ref(this._realtyPath.geolocation));
+        this._g10f = new GeoFire(firebase.database().ref(this._realtyPath.zooms.z10));
+        this._g12f = new GeoFire(firebase.database().ref(this._realtyPath.zooms.z12));
+        this._g14f = new GeoFire(firebase.database().ref(this._realtyPath.zooms.z14));
+
+        var coords = [latitude, longitude];
+        
+        if (zoom < 10) {
+          var q = {
+            center: coords,
+            radius: 120
+          }
+          if (!this._g10q) {
+            this._g10q = this._g10f.query(q);
+            this._g10q.on('key_entered', this._keyEntered.bind(this, 'g10loc', this._realtyPath.rangeZooms.z10))
+            this._g10q.on('key_exited', this._keyExited.bind(this, 'g10loc'))
+          } else {
+            this._g10q.updateCriteria(q);
+          }
+          
+        } else if (zoom < 12) {
+          var q = {
+            center: coords,
+            radius: 30
+          }
+          if (!this._g12q) {
+            this._g12q = this._g12f.query(q);
+            this._g12q.on('key_entered', this._keyEntered.bind(this, 'g12loc', this._realtyPath.rangeZooms.z12))
+            this._g12q.on('key_exited', this._keyExited.bind(this, 'g12loc'))
+          } else {
+            this._g12q.updateCriteria(q);
+          }
+        } else if (zoom < 14) {
+          var q = {
+            center: coords,
+            radius: 10
+          }
+          if (!this._g14q) {
+            this._g14q = this._g14f.query(q);
+            this._g14q.on('key_entered', this._keyEntered.bind(this, 'g14loc', this._realtyPath.rangeZooms.z14))
+            this._g14q.on('key_exited', this._keyExited.bind(this, 'g14loc'))
+            
+          } else {
+            this._g14q.updateCriteria(q);
+          }
+        } else {
+          var q = {
+            center: coords,
+            radius: 4
+          }
+          
+          if (!this._geoQuery) {
+            this._geoQuery = this._geoFire.query(q);
+            this._geoQuery.on('key_entered', this._keyEntered.bind(this, 'geolocations', this._realtyPath.prices))
+            this._geoQuery.on('key_exited', this._keyExited.bind(this, 'geolocations'))
+            // console.log(this._geoQuery)
+          } else {
+            this._geoQuery.updateCriteria(q);
+          }
+        }
+
+        this._lastZoom = zoom;
+      },
+
+      _keyEntered: function(list, ref, key) {
+        console.log(key)
+        if (!this._geoKeys[list]) this._geoKeys[list] = {}
+        this._geoKeys[list][key] = firebase.database().ref(ref + '/' + key);
+        this._geoKeys[list][key].on('value', (snapshot) => {
+          var obj = snapshot.val();
+          obj.$key = key;
+          this.push(list, obj);
+        });
+      },
+
+      _keyExited: function(list, key) {
+        this._geoKeys[list][key].off();
+        this.splice(list, _.findIndex(this[list], (i) => {return i.$key === key;}), 1);
       },
 
       _geoSuccess: function(position) {
         // console.log(position)
-        this.$$('google-map').latitude = position.coords.latitude;
-        this.$$('google-map').longitude = position.coords.longitude;
+        this.latitude = position.coords.latitude;
+        this.longitude = position.coords.longitude;
       },
 
       _geoError: function(error) {
@@ -100,20 +305,32 @@
       },
 
       _googleMapClick: function(e) {
-        if (this.user) {          
+        if (this.user && this.zoom >= 14) {          
           this.newLat = e.detail.latLng.lat();
           this.newLng = e.detail.latLng.lng();
+          this.newPin = true;
           Polymer.RenderStatus.afterNextRender(this, () => {
             this.$$('#new-pin').hidden = false;
-            this.$$('#new-pin').open = true;
+            this.$$('#new-pin-info-container').showInfoWindow(this.$$('#new-pin').marker);
+            
+            // this.$$('#new-pin').open = true;
           });          
+        } else if (this.zoom < 14) {
+          PROJECTMAP.Elements.Template.$.toast.showMessage('Please zoom in before adding a new land marker');
+        } else {
+
         }
       },
 
       _closeNewPin: function() {
         this.$$('#new-pin').hidden = true;
-        this.$$('#new-pin').open = false;
+        this.newPin = false;
+        
       },
+
+      _markerHider: function(zoom, zoomLevel) {
+        return zoom <= zoomLevel
+      }
 
       // _cancelPrice: function() {
       //   this.newPin = false;
@@ -123,26 +340,7 @@
       //   this.submitting = false;
       // },
 
-      _submitPrice: function() {
-        this.submitting = true;
-        var key = firebase.database().ref('/alpha/prices').push().key;
-
-        if (this.user) {
-          firebase.database().ref(`/alpha/prices/${key}`).set({
-            uid: this.user.uid,
-            email: this.user.email,
-            displayName: this.user.displayName,
-            price: this.$$('#price').value,
-            tel: this.$$('#tel').value,
-            longitude: this.$$('#new-pin').longitude,
-            latitude: this.$$('#new-pin').latitude
-          }).then(() => {
-            PROJECTMAP.Elements.Template.$.toast.showMessage('Saved');
-            this._cancelPrice();
-          });
-        }
-        
-      }
+      
     });
   </script>
 </dom-module>

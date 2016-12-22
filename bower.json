@@ -25,7 +25,9 @@
     "iron-image": "PolymerElements/iron-image#^1.2.5",
     "paper-progress": "PolymerElements/paper-progress#^1.0.11",
     "paper-listbox": "PolymerElements/paper-listbox#^1.1.2",
-    "paper-item": "PolymerElements/paper-item#^1.2.1"
+    "paper-item": "PolymerElements/paper-item#^1.2.1",
+    "geofire": "^4.1.2",
+    "underscore": "^1.8.3"
   },
   "devDependencies": {
     "web-component-tester": "^4.0.0"

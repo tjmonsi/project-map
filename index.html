@@ -147,12 +147,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             message = error.stack;
           }
 
-          if (window.ga) {
-            ga('send', 'event', 'error', file + ':' + lineNumber, message);
-          }
+          // if (window.ga) {
+          //   ga('send', 'event', 'error', file + ':' + lineNumber, message);
+          // }
           
           if (window.Raven && error) {
-            Raven.captureException(error);
+            // Raven.captureException(error);
             // Raven.showReportDialog();
           } else {
             console.log(message)
