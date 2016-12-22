@@ -74,14 +74,15 @@
         var price = this.$$('#price').value;
         // console.log(this.uid, coords, this.userData, this.userPath.profiles);
         if (this.uid) {
-          firebase.database().ref(`/${this.realtyPath.prices}/${key}`).set({
+          var saveObj = {
             uid: this.uid,
-            email: this.userData.email,
-            displayName: this.userData.displayName,
             price: price,
-            phone: this.userData.phone,
             coords: coords
-          }).then(() => {
+          }
+          if (this.userData.email) saveObj.email = this.userData.email
+          if (this.userData.displayName) saveObj.displayName = this.userData.displayName
+          if (this.userData.phone) saveObj.phone = this.userData.phone
+          firebase.database().ref(`/${this.realtyPath.prices}/${key}`).set(saveObj).then(() => {
             var geoFire = new GeoFire(firebase.database().ref(this.realtyPath.geolocation));
             PROJECTMAP.Elements.Template.$.toast.showMessage('Saved');
             this._closeForm();
