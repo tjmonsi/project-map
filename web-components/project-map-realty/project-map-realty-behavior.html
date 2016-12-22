@@ -1,0 +1,54 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../web-components/project-map-utils/project-map-utils-behavior.html">
+
+<script>
+  (function(){
+    'use strict';
+    /** @polymerBehavior PROJECTMAP.ProjectMapRealtyBehavior */
+    PROJECTMAP.ProjectMapRealtyBehaviorImpl = {
+
+      properties: {
+        
+        realtyPath: {
+          type: Object,
+          readOnly: true,
+          value: function() { return this._realtyPath; }
+        },
+        realtyGroup: {
+          type: String,
+          readOnly: true,
+          value: function() { return this._realtyGroup; }
+        },
+      },
+
+      get _realtyGroup() {
+        return 'realtyGroup';
+      },
+
+      get _realtyPath() {
+        var zooms = this._version + '/' + this._realtyGroup + '/zooms';
+        var rangeZooms = this._version + '/' + this._realtyGroup + '/rangeZooms';
+        return {
+          prices: this._version + '/' + this._realtyGroup + '/prices',
+          // categories: this._version + '/' + this._realtyGroup + '/categories',
+          geolocation: this._version + '/' + this._realtyGroup + '/geolocation',
+          // media: this._version + '/' + this._realtyGroup + '/media',
+          rangeZooms: {
+            z10: rangeZooms + '/z10',
+            z12: rangeZooms + '/z12',
+            z14: rangeZooms + '/z14'
+          },
+          zooms: {
+            z10: zooms + '/z10',
+            z12: zooms + '/z12',
+            z14: zooms + '/z14'
+          }
+        };
+      },
+    };
+    PROJECTMAP.ProjectMapRealtyBehavior = [
+      PROJECTMAP.ProjectMapUtilsBehavior,
+      PROJECTMAP.ProjectMapRealtyBehaviorImpl
+    ];
+  })();
+</script>

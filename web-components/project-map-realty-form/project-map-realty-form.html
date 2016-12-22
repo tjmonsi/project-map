@@ -3,6 +3,10 @@
 <link rel="import" href="../../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/paper-spinner/paper-spinner.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-document.html">
+<link rel="import" href="../../web-components/project-map-realty/project-map-realty-behavior.html">
+<link rel="import" href="../../web-components/project-map-user/project-map-user-behavior.html">
+<link rel="import" href="../../web-components/project-map-scripts/geofire.html">
 
 <!-- Style dependency -->
 <link rel="import" href="project-map-realty-form-style.html">
@@ -14,23 +18,27 @@
         display: block;
       }
     </style>
+    <!--<template is="dom-if" if="[[user]]">-->
+      <firebase-document path="[[userPath.profiles]]/[[uid]]" data="{{userData}}"></firebase-document>
 
-    <h4>Please put a price and images</h4>
-    <paper-input id="price" label="Price">
-      <div prefix>&#8369;&nbsp;</div>
-    </paper-input>
-    <template is="dom-if" if="[[!submitting]]">
-      <paper-button on-tap="_submitPrice">
-        Submit
+      <h4>Please put a price and images</h4>
+      <paper-input id="price" label="Price">
+        <div prefix>&#8369;&nbsp;</div>
+      </paper-input>
+      <template is="dom-if" if="[[!submitting]]">
+        <paper-button on-tap="_submitPrice">
+          Submit
+        </paper-button>
+      </template>
+      <template is="dom-if" if="[[submitting]]">
+        <paper-spinner active></paper-spinner>
+      </template>
+
+      <paper-button on-tap="_closeForm">
+        Cancel
       </paper-button>
-    </template>
-    <template is="dom-if" if="[[submitting]]">
-      <paper-spinner active></paper-spinner>
-    </template>
-
-    <paper-button on-tap="_closeForm">
-      Cancel
-    </paper-button>
+    <!--</template>-->
+    
     
   </template>
 
@@ -39,7 +47,10 @@
       is: 'project-map-realty-form',
 
       properties: {
-        user: {
+        uid: {
+          type: String
+        },
+        userData: {
           type: Object
         },
         submitting: {
@@ -49,8 +60,136 @@
       },
 
       _closeForm: function() {
+        this.$$('#price').value = '';
+        this.submitting = false;
         this.fire('close-new-pin');
-      }
+      },
+
+      _submitPrice: function() {
+        this.submitting = true;
+        PROJECTMAP.Elements.Template.$.toast.showMessage('Saving...');
+
+        var key = firebase.database().ref(this.realtyPath.prices).push().key;
+        var coords = [this.latitude, this.longitude];
+        var price = this.$$('#price').value;
+        // console.log(this.uid, coords, this.userData, this.userPath.profiles);
+        if (this.uid) {
+          firebase.database().ref(`/${this.realtyPath.prices}/${key}`).set({
+            uid: this.uid,
+            email: this.userData.email,
+            displayName: this.userData.displayName,
+            price: price,
+            phone: this.userData.phone,
+            coords: coords
+          }).then(() => {
+            var geoFire = new GeoFire(firebase.database().ref(this.realtyPath.geolocation));
+            PROJECTMAP.Elements.Template.$.toast.showMessage('Saved');
+            this._closeForm();
+            return geoFire.set(key, coords);
+          }).then(() => {
+            var z10gF = new GeoFire(firebase.database().ref(this.realtyPath.zooms.z10));
+            var z12gF = new GeoFire(firebase.database().ref(this.realtyPath.zooms.z12));
+            var z14gF = new GeoFire(firebase.database().ref(this.realtyPath.zooms.z14));
+            var z10q = z10gF.query({
+              center: coords,
+              radius: 10
+            });
+            var z12q = z12gF.query({
+              center: coords,
+              radius: 2
+            });
+            var z14q = z14gF.query({
+              center: coords,
+              radius: 1
+            });
+            var z10point = null;
+            var z12point = null;
+            var z14point = null;
+
+            var zoomObj = {
+              coords: coords,
+              min: price,
+              max: price,
+              points: {}
+            }
+            zoomObj.points[key] = {
+              value: true
+            }
+
+            var transaction = (oldValue) => {
+              if (oldValue) {
+                oldValue.min = oldValue.min <= price ? oldValue.min : price;
+                oldValue.max = oldValue.max >= price ? oldValue.max : price;
+                oldValue.points[key] = {
+                  value: true
+                }
+                return oldValue
+              } else {
+                return zoomObj
+              }
+            
+            };
+
+            var noZ10point = setTimeout(() => {
+              if (!z10point) {
+                firebase.database().ref(this._realtyPath.rangeZooms.z10 + '/' + key).set(zoomObj).then(() => {
+                  z10gF.set(key, coords)
+                })
+              }
+              
+            }, 3000);
+
+            z10q.on('key_entered', (zkey, loc, dist) => {
+              clearTimeout(noZ10point);
+              z10point = z10point || zkey;
+              firebase.database().ref(this._realtyPath.rangeZooms.z10 + '/' + zkey).transaction(transaction)
+              z10q.cancel();
+            });
+
+
+            var noZ12point = setTimeout(() => {
+              if (!z12point) {
+                firebase.database().ref(this._realtyPath.rangeZooms.z12 + '/' + key).set(zoomObj).then(() => {
+                  z12gF.set(key, coords)
+                })
+              }
+              
+            }, 3000);
+
+            z12q.on('key_entered', (zkey, loc, dist) => {
+              clearTimeout(noZ12point);
+              z12point = z12point || zkey;
+              firebase.database().ref(this._realtyPath.rangeZooms.z12 + '/' + zkey).transaction(transaction)
+              z12q.cancel();
+            });
+
+            var noZ14point = setTimeout(() => {
+              if (!z14point) {
+                firebase.database().ref(this._realtyPath.rangeZooms.z14 + '/' + key).set(zoomObj).then(() => {
+                  z14gF.set(key, coords)
+                })
+              }
+              
+            }, 3000);
+
+            z14q.on('key_entered', (zkey, loc, dist) => {
+              clearTimeout(noZ14point);
+              z14point = z14point || zkey;
+              firebase.database().ref(this._realtyPath.rangeZooms.z14 + '/' + zkey).transaction(transaction)
+              z14q.cancel();
+            });
+          });
+
+          
+
+        }
+        
+      },
+
+      behaviors: [
+        PROJECTMAP.ProjectMapRealtyBehavior,
+        PROJECTMAP.ProjectMapUserBehavior,
+      ]
     });
   </script>
 </dom-module>
