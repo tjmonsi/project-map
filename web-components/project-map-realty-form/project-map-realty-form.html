@@ -119,14 +119,28 @@
               coords: coords
             }
 
-            var transaction = (p, loc, oldValue) => {
-              console.log(loc)
+            var transaction = (p, loc, zkey, zoomValue, oldValue) => {
               if (oldValue) {
                 oldValue.min = oldValue.min <= p ? oldValue.min : p;
-                oldValue.max = oldValue.max >= p ? oldValue.max : p;
+                oldValue.max = oldValue.max > p ? oldValue.max : p;
                 oldValue.points[key] = {
                   coords: loc
                 }
+                var newLat = 0;
+                var newLng = 0;
+                var points = 0;
+                for (var i in oldValue.points) {
+                  // console.log(oldValue.points[i].coords)
+                  newLat += oldValue.points[i].coords[0];
+                  newLng += oldValue.points[i].coords[1];
+                  points++;
+                }
+
+                var g = new GeoFire(firebase.database().ref(this.realtyPath.zooms[zoomValue]));
+                console.log(zkey, [newLat/points, newLng/points]);
+                oldValue.coords = [newLat/points, newLng/points];
+                g.set(zkey, oldValue.coords);
+
                 return oldValue
               } else {
                 return zoomObj
@@ -146,7 +160,7 @@
             z10q.on('key_entered', (zkey, loc, dist) => {
               clearTimeout(noZ10point);
               z10point = z10point || zkey;
-              firebase.database().ref(this._realtyPath.rangeZooms.z10 + '/' + zkey).transaction(transaction.bind(this, price, loc))
+              firebase.database().ref(this._realtyPath.rangeZooms.z10 + '/' + zkey).transaction(transaction.bind(this, price, coords, zkey, 'z10'))
               z10q.cancel();
             });
 
@@ -163,7 +177,7 @@
             z12q.on('key_entered', (zkey, loc, dist) => {
               clearTimeout(noZ12point);
               z12point = z12point || zkey;
-              firebase.database().ref(this._realtyPath.rangeZooms.z12 + '/' + zkey).transaction(transaction.bind(this, price, loc))
+              firebase.database().ref(this._realtyPath.rangeZooms.z12 + '/' + zkey).transaction(transaction.bind(this, price, coords, zkey, 'z12'))
               z12q.cancel();
             });
 
@@ -179,7 +193,7 @@
             z14q.on('key_entered', (zkey, loc, dist) => {
               clearTimeout(noZ14point);
               z14point = z14point || zkey;
-              firebase.database().ref(this._realtyPath.rangeZooms.z14 + '/' + zkey).transaction(transaction.bind(this, price, loc))
+              firebase.database().ref(this._realtyPath.rangeZooms.z14 + '/' + zkey).transaction(transaction.bind(this, price, coords, zkey, 'z14'))
               z14q.cancel();
             });
           });
