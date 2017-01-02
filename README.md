@@ -1,4 +1,5 @@
 [![Stories in Ready](https://badge.waffle.io/tjmonsi/project-map.png?label=ready&title=Ready)](https://waffle.io/tjmonsi/project-map)
+[![Stories in In Progress](https://badge.waffle.io/tjmonsi/project-map.png?label=in%20progress&title=In%20Progress)](https://waffle.io/tjmonsi/project-map)
 # 
 
 ## Table of Contents
