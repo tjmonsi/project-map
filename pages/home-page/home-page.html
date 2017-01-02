@@ -7,6 +7,7 @@
 <link rel="import" href="../../web-components/project-map-scripts/geofire.html">
 <link rel="import" href="../../web-components/project-map-scripts/underscore.html">
 <link rel="import" href="../../web-components/project-map-realty-form/project-map-realty-form.html">
+<link rel="import" href="../../web-components/project-map-realty-info/project-map-realty-info.html">
 <link rel="import" href="../../web-components/project-map-realty/project-map-realty-behavior.html">
 
 <!-- Style dependency -->
@@ -34,7 +35,6 @@
         on-google-map-drag="_googleMapDrag">
       
       <template is="dom-if" if="[[user.uid]]">
-
         <google-map-marker id="new-pin" latitude="[[newLat]]" longitude="[[newLng]]" on-google-map-marker-close="_closeNewPin" click-events hidden>
         </google-map-marker>
 
@@ -52,13 +52,34 @@
         <!--<firebase-document ></firebase-document>-->
       <!--</template>-->-->
 
+      
+
       <template is="dom-repeat" items="[[geolocations]]">
-        <google-map-marker id="prices-[[item.$key]]" latitude="[[returnCoords(item.coords, 0)]]" longitude="[[returnCoords(item.coords, 1)]]" hidden$="[[_hideGeolocations(zoom)]]">
-          Price: Php [[item.price]]<br/>
-          Contact: [[item.displayName]]<br/>
-          Email: <a href="mailto:[[item.email]]">[[item.email]]</a><br/>
-          Telephone: <a href="tel:[[item.tel]]">[[item.phone]]</a>
+        <google-map-marker 
+            id="prices-[[item.$key]]" 
+            class="map-marker"
+            latitude="[[returnCoords(item.coords, 0)]]" 
+            longitude="[[returnCoords(item.coords, 1)]]" 
+            hidden$="[[_hideGeolocations(zoom)]]"
+            click-events
+            on-google-map-marker-click="_markerClick">
         </google-map-marker>
+
+        <paper-map-info 
+            id="info-prices-[[item.$key]]"
+            class="map-marker-info"
+            latitude="[[returnCoords(item.coords, 0)]]" 
+            longitude="[[returnCoords(item.coords, 1)]]" >
+          <project-map-realty-info 
+              price="[[item.price]]"
+              phone="[[item.phone]]"
+              display-name="[[item.displayName]]"
+              email="[[item.email]]"
+              owner="[[item.uid]]"
+              user="[[user]]"
+              ></project-map-realty-info>
+        </paper-map-info>
+        
       </template>
 
       <template is="dom-repeat" items="[[g14loc]]">
@@ -279,7 +300,7 @@
       },
 
       _keyEntered: function(list, ref, key) {
-        console.log(key)
+        // console.log(key)
         if (!this._geoKeys[list]) this._geoKeys[list] = {}
         this._geoKeys[list][key] = firebase.database().ref(ref + '/' + key);
         this._geoKeys[list][key].on('value', (snapshot) => {
@@ -301,6 +322,7 @@
       },
 
       _geoError: function(error) {
+        console.log(error)
         console.log('Error occurred. Error code: ' + error.code);
       },
 
@@ -309,17 +331,33 @@
           this.newLat = e.detail.latLng.lat();
           this.newLng = e.detail.latLng.lng();
           this.newPin = true;
+
+          var mapMarkerInfos = Polymer.dom(this.root).querySelectorAll('.map-marker-info');
+          for (var i in mapMarkerInfos) {
+            mapMarkerInfos[i].close();
+          }
+
           Polymer.RenderStatus.afterNextRender(this, () => {
             this.$$('#new-pin').hidden = false;
             this.$$('#new-pin-info-container').showInfoWindow(this.$$('#new-pin').marker);
-            
-            // this.$$('#new-pin').open = true;
           });          
         } else if (this.zoom < 14) {
           PROJECTMAP.Elements.Template.$.toast.showMessage('Please zoom in before adding a new land marker');
         } else {
 
         }
+      },
+
+      _markerClick: function(e) {
+        var mapMarkerInfos = Polymer.dom(this.root).querySelectorAll('.map-marker-info');
+        var element = e.srcElement;
+        for (var i in mapMarkerInfos) {
+          mapMarkerInfos[i].close();
+        }
+
+        Polymer.RenderStatus.afterNextRender(this, () => {
+          this.$$('#info-' + element.id).showInfoWindow(element.marker);
+        });
       },
 
       _closeNewPin: function() {
@@ -331,16 +369,6 @@
       _markerHider: function(zoom, zoomLevel) {
         return zoom <= zoomLevel
       }
-
-      // _cancelPrice: function() {
-      //   this.newPin = false;
-      //   this.$$('#new-pin').hidden = true;
-      //   this.$$('#price').value = '';
-      //   this.$$('#tel').value = '';
-      //   this.submitting = false;
-      // },
-
-      
     });
   </script>
 </dom-module>
