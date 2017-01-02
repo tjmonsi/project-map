@@ -1,0 +1,58 @@
+<!-- Polymer dependencies -->
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+
+<link rel="import" href="../../web-components/project-map-chat/project-map-chat-behavior.html">
+
+<!-- Style dependency -->
+<link rel="import" href="project-map-realty-info-style.html">
+
+<dom-module id="project-map-realty-info">
+  <template>
+    <style is="custom-style" include="project-map-realty-info-style">
+      :host {
+        display: block;
+      }
+    </style>
+
+    Price: Php [[price]]<br/>
+    Contact: [[displayName]]<br/>
+    Email: <a href="mailto:[[email]]">[[email]]</a><br/>
+    <template is="dom-if" if="[[phone]]">
+      Telephone: <a href="tel:[[phone]]">[[phone]]</a><br/>
+    </template>
+    
+    <paper-button on-tap="converse" id="[[owner]]" raised>Send Message</paper-button>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'project-map-realty-info',
+
+      properties: {
+        price: {
+          type: Number
+        },
+        displayName: {
+          type: String
+        },
+        email: {
+          type: String
+        },
+        phone: {
+          type: String
+        },
+        user: {
+          type: Object
+        },
+        owner: {
+          type: String
+        }
+      },
+
+      behaviors: [
+        PROJECTMAP.ProjectMapChatBehavior
+      ] 
+    });
+  </script>
+</dom-module>
