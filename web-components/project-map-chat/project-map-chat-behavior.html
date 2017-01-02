@@ -27,12 +27,14 @@
 
       get _chatPath() {        
         return {
-          users: this._version + '/' + this._chatGroup + '/users', // this is where you put a list of users and their list of conversations
+          users: this._version + '/' + this._chatGroup + '/users', // this is where you put a list of users and list of users with conversations
           conversations: this._version + '/' + this._chatGroup + '/conversations', // this is the list of conversations and their list of messages
         };
       },
 
-      
+      converse: function(e) {
+        console.log(e.srcElement.id)
+      }
     };
     PROJECTMAP.ProjectMapChatBehavior = [
       PROJECTMAP.ProjectMapUtilsBehavior,
