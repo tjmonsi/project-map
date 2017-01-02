@@ -1,0 +1,42 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../web-components/project-map-utils/project-map-utils-behavior.html">
+
+<script>
+  (function(){
+    'use strict';
+    /** @polymerBehavior PROJECTMAP.ProjectMapChatBehavior */
+    PROJECTMAP.ProjectMapChatBehaviorImpl = {
+
+      properties: {
+        
+        chatPath: {
+          type: Object,
+          readOnly: true,
+          value: function() { return this._chatPath; }
+        },
+        chatGroup: {
+          type: String,
+          readOnly: true,
+          value: function() { return this._chatGroup; }
+        },
+      },
+
+      get _chatGroup() {
+        return 'chatGroup';
+      },
+
+      get _chatPath() {        
+        return {
+          users: this._version + '/' + this._chatGroup + '/users', // this is where you put a list of users and their list of conversations
+          conversations: this._version + '/' + this._chatGroup + '/conversations', // this is the list of conversations and their list of messages
+        };
+      },
+
+      
+    };
+    PROJECTMAP.ProjectMapChatBehavior = [
+      PROJECTMAP.ProjectMapUtilsBehavior,
+      PROJECTMAP.ProjectMapChatBehaviorImpl
+    ];
+  })();
+</script>
